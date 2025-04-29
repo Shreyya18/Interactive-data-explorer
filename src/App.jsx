@@ -1,29 +1,118 @@
+import { useState, useEffect } from 'react';
+import PokemonCard from './components/PokemonCard';
+import SearchBar from './components/SearchBar';
+import FilterDropdown from './components/FilterDropdown';
+
 const App = () => {
+  const [pokemonList, setPokemonList] = useState([]);
+  const [filteredPokemon, setFilteredPokemon] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [typesList, setTypesList] = useState([]);
+
+  useEffect(() => {
+    const fetchPokemon = async () => {
+      try {
+        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=150');
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const data = await response.json();
+
+        // Map additional data for each Pokémon
+        const detailedPokemon = await Promise.all(
+          data.results.map(async (pokemon) => {
+            const res = await fetch(pokemon.url);
+            const details = await res.json();
+            return {
+              name: details.name,
+              sprite: details.sprites.front_default,
+              types: details.types.map((type) => type.type.name),
+              id: details.id,
+            };
+          })
+        );
+
+        setPokemonList(detailedPokemon);
+        setFilteredPokemon(detailedPokemon); // Default to all Pokémon
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    const fetchTypes = async () => {
+      try {
+        const response = await fetch('https://pokeapi.co/api/v2/type/');
+        if (!response.ok) throw new Error('Failed to fetch types');
+        const data = await response.json();
+        setTypesList(data.results.map((type) => type.name));
+      } catch (err) {
+        console.error(err.message);
+      }
+    };
+
+    fetchPokemon();
+    fetchTypes();
+  }, []);
+
+  const handleSearchChange = (term) => {
+    setSearchTerm(term);
+    filterPokemon(term, selectedType);
+  };
+
+  const handleTypeChange = (type) => {
+    setSelectedType(type);
+    filterPokemon(searchTerm, type);
+  };
+
+  const filterPokemon = (term, type) => {
+    let filtered = pokemonList;
+
+    if (term) {
+      filtered = filtered.filter((pokemon) =>
+        pokemon.name.toLowerCase().includes(term.toLowerCase())
+      );
+    }
+
+    if (type) {
+      filtered = filtered.filter((pokemon) =>
+        pokemon.types.includes(type.toLowerCase())
+      );
+    }
+
+    setFilteredPokemon(filtered);
+  };
+
   return (
     <div className="min-h-screen bg-blue-50 text-gray-800">
-      <h1 className="text-4xl font-bold text-center text-orange-500 my-8">
-        Interactive Pokémon Explorer
-      </h1>
-      <div className="flex justify-center">
-        <input
-          type="text"
-          placeholder="Search Pokémon..."
-          className="border-2 border-orange-500 rounded-lg px-4 py-2 w-3/4 max-w-md"
-        />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-        {/* Example Pokémon Card */}
-        <div className="border rounded-lg bg-white shadow-md p-4 text-center">
-          <img
-            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"
-            alt="Pikachu"
-            className="w-24 h-24 mx-auto"
-          />
-          <h3 className="text-lg font-semibold mt-2">Pikachu</h3>
-          <p className="text-sm text-gray-600">ID: 25</p>
-          <p className="text-sm text-gray-600">Type: Electric</p>
-        </div>
-      </div>
+      <h1 className="text-4xl font-bold text-center text-orange-500 my-8">Interactive Pokémon Explorer</h1>
+
+      {loading && <p className="text-center">Loading...</p>}
+      {error && <p className="text-center text-red-500">{error}</p>}
+
+      {!loading && !error && (
+        <>
+          <SearchBar searchTerm={searchTerm} onSearchChange={handleSearchChange} />
+          <FilterDropdown types={typesList} selectedType={selectedType} onTypeChange={handleTypeChange} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+            {filteredPokemon.length > 0 ? (
+              filteredPokemon.map((pokemon) => (
+                <PokemonCard
+                  key={pokemon.id}
+                  name={pokemon.name}
+                  sprite={pokemon.sprite}
+                  types={pokemon.types}
+                  id={pokemon.id}
+                />
+              ))
+            ) : (
+              <p className="text-center col-span-full">No Pokémon match your search.</p>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
