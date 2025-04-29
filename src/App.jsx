@@ -86,7 +86,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 text-gray-800">
+    <div className="min-h-screen bg-blue-50 text-gray-800 grid justify-center">
       <h1 className="text-4xl font-bold text-center text-orange-500 my-8">Interactive Pokémon Explorer</h1>
 
       {loading && <p className="text-center">Loading...</p>}
@@ -96,7 +96,7 @@ const App = () => {
         <>
           <SearchBar searchTerm={searchTerm} onSearchChange={handleSearchChange} />
           <FilterDropdown types={typesList} selectedType={selectedType} onTypeChange={handleTypeChange} />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 p-4">
             {filteredPokemon.length > 0 ? (
               filteredPokemon.map((pokemon) => (
                 <PokemonCard
