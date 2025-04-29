@@ -15,7 +15,6 @@
 - **Vite**: A fast and modern front-end tooling setup.
 - **Tailwind CSS**: Utility-first CSS framework for styling.
 - **PokeAPI**: Provides data about Pokémon.
-- **Font Awesome**: For icons.
 - **Vercel**: For deployment.
 
 Link to deployed App
