@@ -86,7 +86,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 text-gray-800 ">
+    <div className="min-h-screen  text-gray-800 ">
       <h1 className="text-4xl font-bold text-center text-orange-500 my-8">Interactive Pokémon Explorer</h1>
 
       {loading && <p className="text-center">Loading...</p>}
